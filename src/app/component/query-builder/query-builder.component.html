@@ -1,0 +1,180 @@
+<div class="query-builder">
+  <div class="group-container">
+    <div class="left-header">
+
+      <p-selectButton
+        [options]="conditions"
+        [(ngModel)]="query().condition"
+        (onOptionClick)="onQueryChange()"
+        [disabled]="disabled()"
+      ></p-selectButton>
+
+      <button pButton
+              class="pi icon-add"
+              (click)="addRule()"
+              [raised]="true"
+              [disabled]="disabled()"
+              [pTooltip]="(showTooltip())?queryBuilderText.tooltip.new_rule:''"
+      ></button>
+
+      <button pButton
+              *ngIf="allowGroups()"
+              class="pi icon-add-rulset"
+              (click)="addGroup()"
+              [raised]="true"
+              [disabled]="disabled()"
+              [pTooltip]="(showTooltip())?queryBuilderText.tooltip.new_group_rule:''"
+      ></button>
+
+      <button
+        pButton
+        *ngIf="!isRoot()"
+        class="pi icon-remove-rulset"
+        [raised]="true" severity="danger"
+        (click)="removeGroup()"
+        [disabled]="disabled()"
+        [pTooltip]="(showTooltip())?queryBuilderText.tooltip.delete_group_rule:''"
+      ></button>
+
+      <ng-container *ngIf="isRoot()">
+        <div class="center-header">
+          <ng-content select="[center-header]"></ng-content>
+        </div>
+
+        <div class="right-header">
+          <ng-content select="[right-header]"></ng-content>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="rules-container">
+      <div *ngFor="let rule of query().rules; let i = index" class="rule">
+        <div *ngIf="isRule(rule)" class="rule-line">
+          <p-select
+            [options]="fields()"
+            [(ngModel)]="rule.field"
+            optionLabel="label"
+            optionValue="name"
+            (onChange)="onFieldChange(rule)"
+            [disabled]="disabled()"
+          ></p-select>
+
+          <p-select
+            [options]="getOperationsForField(rule.field)"
+            [(ngModel)]="rule.operator"
+            optionLabel="label"
+            optionValue="id"
+            (onChange)="onOperatorChange(rule)"
+            [disabled]="disabled()">
+
+            <ng-template pTemplate="item" let-operator>
+              <i [class]="operator.icon" class="mr-2"></i>
+              {{ operator.label }}
+            </ng-template>
+            <ng-template pTemplate="selectedItem" let-operator>
+              <i [class]="operator.icon" class="mr-2"></i>
+              {{ operator.label }}
+            </ng-template>
+          </p-select>
+
+          <ng-container [ngSwitch]="true">
+            <!-- Custom control  -->
+            <ng-container *ngSwitchCase="hasCustomControl(rule.field)">
+              <ng-container *ngTemplateOutlet="getCustomControl(rule.field);
+                                    context: {
+                                        $implicit: rule.value,
+                                        onChange: handleCustomControlChange.bind(this, rule),
+                                        onBlur: onFocusout.bind(this, rule),
+                                        disabled: disabled()
+                                    }">
+              </ng-container>
+            </ng-container>
+
+            <!-- Number input -->
+            <p-inputNumber
+              *ngSwitchCase="getFieldType(rule.field) === 'number' && !hasCustomControl(rule.field)"
+              [(ngModel)]="rule.value"
+              (onInput)="onQueryChange()"
+              [min]="getValueProps(rule.field)?.min"
+              [max]="getValueProps(rule.field)?.max"
+              [prefix]="getValueProps(rule.field)?.prefix"
+              [suffix]="getValueProps(rule.field)?.suffix"
+              [useGrouping]="((getValueProps(rule.field)?.useGrouping)==undefined)?false:getValueProps(rule.field)?.useGrouping!"
+              (focusout)="onFocusout(rule)"
+              [class]="(rule.errorMessage)?'ng-invalid ng-dirty':''"
+              [disabled]="disabled()"
+              [locale]="getValueProps(rule.field)?.locale"
+              [currency]="getValueProps(rule.field)?.currency"
+            ></p-inputNumber>
+
+            <!-- Date picker -->
+            <p-date-picker
+              *ngSwitchCase="getFieldType(rule.field) === 'date' && !hasCustomControl(rule.field)"
+              [showButtonBar]="true"
+              [(ngModel)]="rule.value"
+              (focusout)="onFocusout(rule)"
+              (onSelect)="onQueryChange()"
+              (onInput)="onQueryChange()"
+              [selectionMode]="rule.operator === 'between' ? 'range' : 'single'"
+              [showTime]="((getValueProps(rule.field)?.showTime)==undefined)?false:getValueProps(rule.field)?.showTime!"
+              [showSeconds]="((getValueProps(rule.field)?.showSeconds)==undefined)?false:getValueProps(rule.field)?.showSeconds!"
+              [disabled]="disabled()"
+              [dateFormat]="((getValueProps(rule.field)?.dateFormat)==undefined)?'dd/mm/yy':getValueProps(rule.field)?.dateFormat"
+              [hourFormat]="((getValueProps(rule.field)?.hourFormat)==undefined)?'hh:MM:ss':getValueProps(rule.field)?.hourFormat!"
+              [minDate]="getValueProps(rule.field)?.minDate"
+              [maxDate]="getValueProps(rule.field)?.maxDate"
+              [class]="(rule.errorMessage)?'ng-invalid ng-dirty':''"
+            ></p-date-picker>
+
+            <!-- Boolean switch -->
+            <p-inputSwitch
+              *ngSwitchCase="getFieldType(rule.field) === 'boolean' && !hasCustomControl(rule.field)"
+              [(ngModel)]="rule.value"
+              (focusout)="onFocusout(rule)"
+              (ngModelChange)="onQueryChange()"
+              [disabled]="disabled()"
+            ></p-inputSwitch>
+
+            <!-- Default text input -->
+            <span *ngSwitchDefault>
+                                    <input
+                                      pInputText
+                                      [(ngModel)]="rule.value"
+                                      (ngModelChange)="onQueryChange()"
+                                      [disabled]="disabled()"
+                                      (focusout)="onFocusout(rule)"
+                                    />
+                                </span>
+          </ng-container>
+
+          <p-button
+            *ngIf="showDeleteRuleButton(i)"
+            icon="pi pi-trash"
+            (click)="removeRule(i)"
+            [raised]="true" severity="danger"
+            [disabled]="disabled()"
+            [pTooltip]="(showTooltip())?queryBuilderText.tooltip.delete_rule:''"
+          ></p-button>
+
+          <div *ngIf="rule.errorMessage" class="error-message">
+            {{ rule.errorMessage }}
+          </div>
+        </div>
+
+        <app-query-builder
+          *ngIf="!isRule(rule)"
+          [defaultRule]="newRuleTemplate()"
+          [fields]="fields()"
+          [allowGroups]="allowGroups()"
+          [(ngModel)]="query().rules[i]"
+          (ngModelChange)="onQueryChange()"
+          [isRoot]="false"
+          (removeRequest)="removeRule(i)"
+          [disabled]="disabled()"
+          [customTemplates]="combinedTemplates()"
+          (valid)="handleChildValidation($event, i)"
+        ></app-query-builder>
+      </div>
+    </div>
+  </div>
+</div>

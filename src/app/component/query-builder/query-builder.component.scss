@@ -1,0 +1,51 @@
+.query-builder {
+  padding: 1rem;
+}
+
+.group-container {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.left-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex: 1;
+  margin-bottom: 0.5rem;
+}
+
+.center-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.right-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+.rule-line {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: 0.25rem 0;
+}
+
+.rules-container {
+  padding-left: 0.25rem;
+  padding-top: 0.05rem;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.875em;
+}

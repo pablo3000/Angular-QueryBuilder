@@ -1,0 +1,51 @@
+<p-panel>
+  <app-query-builder [fields]="fields"
+                     [(ngModel)]="query"
+                     (valid)="onValid($event)"
+                     [defaultRule]="defaultRule"
+
+  >
+    <ng-container center-header>
+      <H1>QueryBuilder Demo</H1>
+    </ng-container>
+
+    <ng-container right-header>
+      <p-button [disabled]="!valid" icon="pi pi-sync"></p-button>
+    </ng-container>
+
+
+    <ng-template pTemplate="colorControl" let-value let-onChange="onChange" let-onBlur="onBlur" let-disabled="disabled">
+      <p-colorPicker
+        [ngModel]="value"
+        (onChange)="onChange($event)"
+        [disabled]="disabled">
+      </p-colorPicker>
+    </ng-template>
+
+    <ng-template pTemplate="sliderControl" let-value let-onChange="onChange" let-onBlur="onBlur"
+                 let-disabled="disabled">
+      <div style="width: 150px">
+        <p-slider
+          [ngModel]="value"
+          (onChange)="onChange($event)"
+          (focusout)="onBlur($event)"
+          [disabled]="disabled"
+          styleClass="w-56"
+          max="50"
+        >
+          >
+        </p-slider>
+      </div>
+    </ng-template>
+
+
+  </app-query-builder>
+</p-panel>
+
+
+<p-panel>
+<span>
+  {{ query|json }}
+</span>
+</p-panel>
+
